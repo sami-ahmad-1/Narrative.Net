@@ -30,7 +30,7 @@ function EditBox({ onClose, data, setData }) {
   }
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-75 flex justify-center items-center z-50">
+    <div className="fixed top-0 left-0 w-full  h-full bg-gray-800 bg-opacity-75 flex justify-center items-center z-50">
       <div className="bg-blue-100 w-[85%] p-8 rounded-lg shadow-lg">
         <button      
           className=' float-end right-2 px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:bg-red-600'
