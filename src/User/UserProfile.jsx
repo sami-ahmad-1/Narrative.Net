@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from './CNavbar'
+import Navbar from './NavbarUser'
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const auth = getAuth();
-
-
 
 function CHome() {
 
@@ -19,15 +17,15 @@ function CHome() {
     })
   } ,[])
 
-
+  console.log(userData)
   console.log(userData)
   return (
-    <div style={{userSelect:'none'}} className='text-center text-3xl'>
+    <div style={{userSelect:'none'}} className='text-center text-3xl bg-blue-200 text-black h-screen min-w-fit min-h-fit'>
         <Navbar/>
-        <div>
+        <div >
           <ul>
-            <li>Name : {userData.displayName} </li>
-            <li>Email : {userData.email}</li>
+            <li><b>Name :</b> {userData.displayName} </li>
+            <li><b>Email :</b> {userData.email}</li>
           </ul>
         </div>
     </div>
@@ -36,5 +34,3 @@ function CHome() {
 
 export default CHome
           
-           
-           

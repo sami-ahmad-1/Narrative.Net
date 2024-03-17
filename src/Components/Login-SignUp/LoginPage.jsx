@@ -1,66 +1,73 @@
 import * as React from "react";
-import { useColorScheme } from "@mui/joy/styles";
+import { useState , useEffect } from "react";
 import Sheet from "@mui/joy/Sheet";
 import CssBaseline from "@mui/joy/CssBaseline";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
 import Input from "@mui/joy/Input";
 import Button from "@mui/joy/Button";
-
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../Firebase/Firebase";
+import { txtDb } from '../../Firebase/Firebase'
+import { collection, getDocs } from "firebase/firestore";
 
-
-function ModeToggle() {
-  const { mode, setMode } = useColorScheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-  if (!mounted) {
-    return <Button variant="soft">Change mode</Button>;
-  }
-
-  return (
-    <Button
-      variant="soft"
-      onClick={() => {
-        setMode(mode === "light" ? "dark" : "light");
-      }}
-    >
-      {mode === "light" ? "Turn dark" : "Turn light"}
-    </Button>
-  );
-}
 
 function LoginPage() {
   const [email, setEmail] = React.useState("");
   const [pass, setPass] = React.useState("");
-  // console.log( email , pass)
-  const [notValidUser , setNotValidUser] = React.useState('')
-
-  // const [admin , setAdmin]  = React.useState(false)
+  const [notValidUser, setNotValidUser] = React.useState("");
+  const [todos, setTodos] = useState([]);
+  const [userTypeCheck , setuserTypeCheck] = useState();
+  const [userAdmin , setUserAdmin] = useState(false)
+ 
   const navigate = useNavigate();
+
 
   const handleClick = () => {
     signInWithEmailAndPassword(auth, email, pass)
       .then(async (userCredential) => {
         const user = userCredential.user;
-        navigate("/blogs")
+        // console.log("The User Details is ", user)
+        userAdmin?  navigate("/WritingArea"): navigate("/blogs")
+        // navigate("/blogs")
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
-        setNotValidUser('Incorrect Email or Password')
+        setNotValidUser("Incorrect Email or Password");
       });
   };
 
+  const fetchPost = async () => {
+    await getDocs(collection(txtDb,'Admin'))
+      .then((querySnapshot) => {               
+        const newData = querySnapshot.docs
+          .map((doc) => ({...doc.data(), id:doc.id }));
+        setTodos(newData);                
+        // console.log("Todos", todos);
+        // console.log("New Data",newData)
+        setuserTypeCheck(newData)              
+      })
+      .catch((e) => console.log("Error Occured Named",e))
+  }
+  useEffect(() => {
+    fetchPost();      
+  }, [])
 
+  const checkuserType = async () => {
+    const checkUsername = obj => obj.email === email;
+    // console.log(todos.some(checkUsername))
+    setUserAdmin(todos.some(checkUsername))
+  }
+  useEffect(() => {
+    checkuserType()
+  },[email])
+
+  // console.log("Todos is " , todos)
+  // console.log("User Admin or not" , userAdmin )
   return (
-    <main >
-      <ModeToggle />
+    <main >      
       <CssBaseline />
       <Sheet
         sx={{
@@ -99,17 +106,6 @@ function LoginPage() {
           />
         </FormControl>
 
-        {/* <FormControl className='bg-red-400 text-2xl border-2 border-r-8 '>    
-
-           <select 
-              onChange={event => setAdmin(event.target.value)}
-            >
-             <option value="false">User</option>
-             <option value="true" >Admin</option>
-           </select>
-
-        </FormControl> */}
-
         {notValidUser}
         <Button sx={{ mt: 1 }} onClick={handleClick}>
           Log in
@@ -117,7 +113,11 @@ function LoginPage() {
 
         <div className="text-center">
           {" "}
-          <Link to="/signup"> Don't have an account? <span className="text-blue-700">Sign up</span></Link>
+          <Link to="/signup">
+            {" "}
+            Don't have an account?{" "}
+            <span className="text-blue-700">Sign up</span>
+          </Link>
         </div>
       </Sheet>
     </main>
@@ -125,17 +125,3 @@ function LoginPage() {
 }
 
 export default LoginPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

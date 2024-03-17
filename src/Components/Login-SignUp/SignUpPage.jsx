@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useColorScheme } from "@mui/joy/styles";
 import Sheet from "@mui/joy/Sheet";
 import CssBaseline from "@mui/joy/CssBaseline";
 import FormControl from "@mui/joy/FormControl";
@@ -7,75 +6,65 @@ import FormLabel from "@mui/joy/FormLabel";
 import Input from "@mui/joy/Input";
 import Button from "@mui/joy/Button";
 import { useState } from "react";
-import { Link , useNavigate} from "react-router-dom";
-
-import { createUserWithEmailAndPassword , updateProfile } from "firebase/auth";
+import { Link, useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../Firebase/Firebase";
-
-function ModeToggle() {
-  const { mode, setMode } = useColorScheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, [])
-  if (!mounted) {
-    return <Button variant="soft">Change mode</Button>;
-  }
-
-  return (
-    <Button
-      variant="soft"
-      onClick={() => {
-        setMode(mode === "light" ? "dark" : "light");
-      }}
-    >
-      {mode === "light" ? "Turn dark" : "Turn light"}
-    </Button>
-  );
-}
+import { collection, addDoc } from "firebase/firestore";
+import { txtDb } from "../../Firebase/Firebase";
 
 function SignUpPage() {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [userType, setUserType] = React.useState();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage2, setErrorMessage2] = useState("");
 
-  const navigate = useNavigate()
-  const [value , setValue] = useState({
-    name : '' ,
-    email : '' ,
-    pass : ''
-  })
-  // const auth = getAuth();
-  const[errorMessage , setErrorMessage] = useState('')
-  const[errorMessage2 , setErrorMessage2] = useState('')
+  const handleSumbit = async () => {
+    if (!name || !email || !pass || !userType) {
+      setErrorMessage("Fill all the Fields");
+      return;
+    } else { console.log("Running") }
 
-  const handleSumbit = () => {
-    if(!value.name || !value.email || !value.pass){
-      setErrorMessage("Fill all the Fields")
-      return 
-    } else {console.log('Running')}
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth,email,pass)
+        .then((userCredential) => {
+          // console.log(userCredential.user);
+          const user = userCredential.user;
+          // alert("Sign Up Successful");
+          setName("");
+          setEmail("");
+          setPass("");
+          updateProfile(user, {
+            displayName: name,
+          });
+          navigate("/");
+        })        
+        .then(async () => {
+          try {
+            const docRef = await addDoc(collection(txtDb, userType), {
+              name: name,
+              email: email,
+              userType: userType,
+            });
+            // console.log("Document written with ID: ", docRef.id);
+          } catch (e) {
+            console.error("Error adding document: ", e);
+          }
+        });
+    } catch (error) {
+      console.log(error.code);
+      setErrorMessage2(error.message);
+    }
+  };
 
-    createUserWithEmailAndPassword(auth, value.email, value.pass)
-    .then((userCredential) => {
-      console.log(userCredential.user)
-      const user = userCredential.user
-      alert("Sign Up Successful")
-      setValue({    name : '' , email : '' ,  pass : ''})
-       updateProfile(user , {
-        displayName : value.name
-      })
-      console.log(auth.displayName)
-      navigate('/')
-    })
-    .catch((error) => {
-      console.log(error.code)
-      setErrorMessage2(error.message.toString().slice(10,50))
-      // alert("sign Up Failed")
-    })
-  }
+  const handleUserTypeChange = (event) => {
+    setUserType(event.target.value);
+  };
 
-  
   return (
-    <main>
-      <ModeToggle />
+    <main >
       <CssBaseline />
       <Sheet
         sx={{
@@ -95,21 +84,66 @@ function SignUpPage() {
         <div className="text-4xl font-thin text-center">Sign Up</div>
         <FormControl>
           <FormLabel>Name</FormLabel>
-          <Input name="name" type="name"  onChange={event => setValue(prev => ({...prev , name: event.target.value}))} value={value.name} />
+          <Input
+            name="name"
+            type="name"
+            onChange={(e) => setName(e.target.value)}
+            value={name}
+          />
         </FormControl>
         <FormControl>
           <FormLabel>Email</FormLabel>
-          <Input name="email" type="email" onChange={event => setValue(prev => ({...prev , email: event.target.value}))} value={value.email} />
+          <Input
+            name="email"
+            type="email"
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+          />
         </FormControl>
         <FormControl>
           <FormLabel>Password</FormLabel>
-          <Input name="password" type="password"  onChange={event => setValue(prev => ({...prev , pass: event.target.value}))} value={value.pass} />
+          <Input
+            name="password"
+            type="password"
+            onChange={(e) => setPass(e.target.value)}
+            value={pass}
+          />
         </FormControl>
+
+        <FormControl component="fieldset" className="font-semibold">
+          <p className="font-bold">User Type</p>
+          <ul>
+            <input
+              type="radio"
+              name="unique"
+              value="user"
+              onClick={handleUserTypeChange}
+            />
+            User
+            <input
+              className="ml-5"
+              type="radio"
+              name="unique"
+              value="Admin"
+              onClick={handleUserTypeChange}
+            />
+            Admin
+          </ul>
+        </FormControl>
+
         <div className="text-red-500">{errorMessage}</div>
         <div className="text-red-500">{errorMessage2}</div>
 
-        <Button onClick={handleSumbit} sx={{ mt: 1 }}>Sign Up</Button>
-        <div className="text-center"> <Link to='/'> Move to <span className="text-blue-700">Login</span></Link></div>
+        <Button onClick={handleSumbit} sx={{ mt: 1 }}>
+          Sign Up
+        </Button>
+        <div className="text-center">
+          {" "}
+          <Link to="/">
+            {" "}
+            Move to <span className="text-blue-700">Login</span>
+          </Link>
+        </div>
       </Sheet>
     </main>
   );
