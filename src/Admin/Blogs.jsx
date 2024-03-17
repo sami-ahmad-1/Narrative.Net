@@ -110,7 +110,7 @@ function CMyBlogs() {
           setData={setEditData}
         />
       )} 
-      <div style={{ userSelect: "none" }} className="ml-[10%] mr-[10%] mt-10 text-justify bg-blue-100 rounded-md min-w-fit  ">
+      <div style={{ userSelect: "none" }} className="mt-10 text-justify bg-blue-100 rounded-md min-w-fit  ">
         <div className="w-full h-4/12  text-2xl  ">
           <div className="grid lg:grid-cols-2 lg:gap-2 justify-items-center cursor-pointer md:gap-1 md:grid-cols-1 ml-5 mr-5 ">
             {dataArray.map((value) => (
